@@ -44,7 +44,7 @@ class ArrayInsert(Scene):
         )
 
         code = CodeExec(
-            "array_append.c",
+            "./code/array_insert.c",
             language="c",
         )
 
@@ -161,7 +161,7 @@ class ArrayInsert(Scene):
         )
 
         output = (
-            CodeOutput("array_insert_output.txt", "c", char_width=6)
+            CodeOutput("./code-output/array_insert_output.txt", "c", char_width=6)
             .to_corner(DR)
             .set_y(bottom[1], DOWN)
         )
