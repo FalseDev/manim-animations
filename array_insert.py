@@ -1,7 +1,7 @@
-from manim import *
+from manim import *  # noqa: F403
 
-from custom_mobjects import *
-from manim_utils import *
+from custom_mobjects import Array, ChangingParagraph, CodeExec, CodeOutput
+from manim_utils import for_loop, for_loop_circumscribes, from_range
 
 
 class ArrayInsert(Scene):
@@ -92,45 +92,25 @@ class ArrayInsert(Scene):
         self.play(arr.append(), var_view.update_text(vars_text("")))
         self.wait(1)
 
-        # For loop parts animation
-        for_init, for_cond_true, for_cond_false, for_decr = for_loop_circumscribes(
-            code, 6
-        )
         i_text = Text("i").next_to(arr.objects[-1], RIGHT, buff=0.5)
 
-        self.play(code.highlight(6))
-        self.play(for_init)
-        self.play(Create(i_text), var_view.update_text(vars_text(arr.size - 1)))
-        self.wait(1)
+        update_vars = lambda i: var_view.update_text(vars_text(i))
+        update_i = lambda i: i_text.animate.next_to(arr.objects[i], RIGHT, buff=0.5)
 
-        self.play(for_cond_true)
-
-        for i in range(arr.size - 1, pos, -1):
-            self.play(code.highlight(7))
+        @for_loop(
+            self,
+            code,
+            (6, 8),
+            **from_range(range(arr.size - 1, pos, -1)),
+            post_init=[Create(i_text), update_vars],
+            with_incr=[update_vars, update_i],
+        )
+        def shift_loop(i: int):
             self.wait(1)
-
             arr.shift_val(self, i - 1, i, create=i == arr.size - 1)
             self.wait(1)
 
-            self.play(code.highlight(8))
-            self.wait(1)
-
-            self.play(code.highlight(6), var_view.update_text(vars_text(i)))
-            self.wait(1)
-
-            self.play(
-                # Decrement for loop variable
-                for_decr,
-                var_view.update_text(vars_text(i - 1)),
-                # Move "i"
-                i_text.animate.next_to(arr.objects[i - 1], RIGHT, buff=0.5),
-            )
-
-            # Conditional
-            if i == pos + 1:
-                self.play(for_cond_false)
-            else:
-                self.play(for_cond_true)
+        shift_loop()
 
         self.play(code.highlight(9))
         self.play(arr.set_text(pos, val), var_view.update_text(vars_text(pos)))
@@ -154,10 +134,9 @@ class ArrayInsert(Scene):
         )
 
         self.play(
-            # arr.animate.to_corner(UR).set_y(top[1], UP),
             ReplacementTransform(arr, hor_array),
             var_view.animate.scale(0.6).set_y(bottom[1] + 0.3, DOWN),
-            i_text.animate.next_to(hor_array.objects[i - 1], DOWN, buff=0.3).scale(0.6),
+            i_text.animate.next_to(hor_array.objects[pos], DOWN, buff=0.3).scale(0.6),
         )
 
         output = (
