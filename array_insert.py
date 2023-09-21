@@ -1,7 +1,7 @@
 from manim import *  # noqa: F403
 
 from custom_mobjects import Array, ChangingParagraph, CodeExec, CodeOutput
-from manim_utils import for_loop, for_loop_circumscribes, from_range
+from manim_utils import for_loop, from_range
 
 
 class ArrayInsert(Scene):
@@ -146,41 +146,26 @@ class ArrayInsert(Scene):
         )
         self.play(Create(output, run_time=3))
 
-        for_init, for_cond_true, for_cond_false, for_incr = for_loop_circumscribes(
-            code, 11
-        )
-
-        self.play(code.highlight(11))
-        self.play(
-            for_init,
-            i_text.animate.next_to(hor_array.objects[0], DOWN, buff=0.3),
-            var_view.update_text(vars_text(0), 0.6),
-        )
-        self.play(for_cond_true)
-
         n = len(output.code.code)
-        for i in range(n):
-            self.play(code.highlight(12))
+        update_vars = lambda i: var_view.update_text(vars_text(i), 0.6)
+        update_i = lambda i: i_text.animate.next_to(
+            hor_array.objects[i - 1 * (i == n)],
+            DOWN + RIGHT * (i == n),
+            buff=0.3,
+        )
+
+        @for_loop(
+            self,
+            code,
+            (11, 13),
+            **from_range(range(n)),
+            with_init=[update_vars, update_i],
+            with_incr=[update_vars, update_i],
+        )
+        def output_loop(i: int):
             self.play(output.show_line(i))
 
-            self.play(code.highlight(13))
-
-            self.play(code.highlight(11))
-
-            self.play(
-                for_incr,
-                var_view.update_text(vars_text(i + 1), 0.6),
-                i_text.animate.next_to(
-                    hor_array.objects[i + 1 * (i != n - 1)],
-                    DOWN + RIGHT * (i == n - 1),
-                    buff=0.3,
-                ),
-            )
-
-            if i == n - 1:
-                self.play(for_cond_false)
-            else:
-                self.play(for_cond_true)
+        output_loop()
 
         self.play(code.highlight(14))
         self.wait(3)
